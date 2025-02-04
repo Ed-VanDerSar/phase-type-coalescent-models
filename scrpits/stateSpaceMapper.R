@@ -9,7 +9,7 @@ state_space_mapper <- function(n) {
   ## Definition of the state matrix
   r_matrix <- matrix(ncol = n, nrow = dim)
   ## Set of partitions of [n]
-  x<-parts(n)
+  x <- parts(n)
   ## Rewriting the partitions as (a1,...,an)
   for (i in 1:dim) {
     y <- x[, dim - i + 1]
