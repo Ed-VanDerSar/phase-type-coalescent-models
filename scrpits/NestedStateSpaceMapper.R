@@ -7,6 +7,7 @@ library(partitions)
 #' [Yung diagram](\url{https://en.wikipedia.org/wiki/Young_tableau#Diagrams})
 #'
 #' @param n the size of the initial sample.
+#' @return all the possible partitions
 state_space_mapper <- function(n) {
   dim <- P(n)
   ## Definition of the state matrix
@@ -33,6 +34,7 @@ state_space_mapper <- function(n) {
 #'
 #' @param n the size of the initial gene sample.
 #' @param b the size of the initial species sample.
+#' @return the state space.
 nested_state_space_mapper <- function(n, b) {
   valid_vectors <- list()
   for (k in 1:(n * b)) {
@@ -48,15 +50,46 @@ nested_state_space_mapper <- function(n, b) {
   return(valid_vectors)
 }
 
-#' Given integers n and b, returna the cardinality of the stae space
-#' of  of the nested Kingman model starting with s species with n genes each.
-#'
-#' @param n the size of the initial gene sample.
-#' @param b the size of the initial species sample.
-cardinality_state_space <- function(n, b) {
-  e <- 0
-  for (k in 1:(n * b)) {
-    e <- e + P(k)
+rate_matrix <- function(e) {
+  dim <- NROW(e)
+  total_gene_sample <- NCOL(e)
+  rate <- matrix(0, ncol = dim, nrow = dim)
+  for (i in 2:dim) {
+    for (j in 1:(i - 1)) {
+      ## establishing differences between two states
+      c <- e[i, ] - e[j, ]
+      ## Identifyung if the two states are compatible
+      sum1 <- c %*% rep(1:total_gene_sample)
+      gene_mass <- sum1[1, 1]
+      ## check1==0 means that the size of the new blocks 
+      ## equals the size of the disappearing blocks
+      ## Identifying how many new blocks are created
+      w1 <- ifelse(c > 0, 1, 0)
+      sum2 <- c %*% w1
+      created_species <- sum2[1, 1]
+      ## check2==1 means that only one new block is created
+      ## Disappearing blocks
+      w2 <- ifelse(c < 0, 1, 0)
+      neg_merged_species <- -c * w2
+      ##Fullfilling the rate matrix
+      if (gene_mass == 0 && created_species == 1) {
+        provrate <- 1
+        for (k in 1:total_gene_sample){
+          provrate <- provrate * choose(e[j, k], neg_merged_species[k])
+        }
+        rate[j, i] <- provrate
+      } else if (gene_mass == -1 && sum(c) == -1) {
+        provrate <- 0
+        for (k in 1:total_gene_sample){
+          provrate <- provrate + choose(k, 2)
+        }
+        rate[j, i] <- provrate
+      }
+    }
   }
-  return(e)
+  ## Diagonal part of the matrix
+  for (i in 1:dim){
+    rate[i, i] <- - sum(rate[i, ])
+  }
+  return(rate)
 }
