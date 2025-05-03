@@ -1,26 +1,23 @@
-library(partitions)
-
-#' Get all ordered partitions of a positive integer into two positive integers
+#' Get all ordered partitions of a non-negative integer into two non-negative
+#' integers. This function returns a matrix of all ordered pairs of non-negative
+#' integers that sum to the given integer `k`.
 #'
-#' This function returns a matrix containing all ordered pairs of positive integers
-#' that sum to the given integer `k`. Each row in the matrix is one such partition.
+#' @param k A non-negative integer.
 #'
-#' @param k A positive integer greater than 1.
-#'
-#' @return A matrix with `k - 1` rows and 2 columns. Each row is a pair of positive integers (a, b)
+#' @return A matrix with `k + 1` rows and 2 columns.Each row is a pair (a, b)
 #'         such that a + b = k.
 #'
 #' @examples
-#' get_ordered_partitions_matrix(5)
+#' get_ordered_partitions_with_zero(3)
 #' #      [,1] [,2]
-#' # [1,]    1    4
-#' # [2,]    2    3
-#' # [3,]    3    2
-#' # [4,]    4    1
+#' # [1,]    0    3
+#' # [2,]    1    2
+#' # [3,]    2    1
+#' # [4,]    3    0
 #'
-get_ordered_partitions_matrix <- function(k) {
-  stopifnot(k > 1)
-  matrix(c(rep(1:(k - 1), each = 1), (k - 1):1), ncol = 2)
+get_ordered_partitions <- function(k) {
+  stopifnot(is.numeric(k), k >= 0, length(k) == 1)
+  matrix(c(0:k, k:0), ncol = 2)
 }
 
 #' Given integers n and b, returna a matrix encoding
@@ -36,6 +33,17 @@ get_ordered_partitions_matrix <- function(k) {
 #' @param n the size of the initial gene sample in each species.
 #' @param b the size of the initial species sample.
 #' @return the state space.
-nested_state_space_mapper <- function(n, m) {
-
+state_space_mapper <- function(n, m) {
+  valid_states <- list()
+  for (i in 1:(n + m)) {
+    states <- get_ordered_partitions(i)
+    valid_states <- append(valid_states, split(states, row(states)))
+  }
+  valid_states <- matrix(
+                         unlist(valid_states),
+                         nrow = length(valid_states),
+                         byrow = TRUE)
+  # reorder states
+  ordered_valid_states <-  valid_states[rev(seq_len(nrow(valid_states))), ]
+  return(ordered_valid_states)
 }
