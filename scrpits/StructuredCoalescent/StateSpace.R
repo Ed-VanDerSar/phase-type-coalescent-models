@@ -35,15 +35,29 @@ get_ordered_partitions <- function(k) {
 #' @return the state space.
 state_space_mapper <- function(n, m) {
   valid_states <- list()
-  for (i in 1:(n + m)) {
+  for (i in 1:(n + m - 1)) {
     states <- get_ordered_partitions(i)
     valid_states <- append(valid_states, split(states, row(states)))
   }
+  ## Reorder to choose the first state as (n,m)
+  initial_states <- get_ordered_partitions((n + m))
+  # Find the index of the row where the first column is n
+  start_index <- which(initial_states[, 1] == n)
+  # Reorder the matrix
+  initial_states <- rbind(
+                          initial_states[-start_index, ],
+                          initial_states[start_index, ])
+  valid_states <- append(
+                         valid_states,
+                         split(
+                               initial_states,
+                               row(initial_states)))
+
   valid_states <- matrix(
                          unlist(valid_states),
                          nrow = length(valid_states),
                          byrow = TRUE)
-  # reorder states
+  # reorder rows to star with (n,m) and end in the absorbing state
   ordered_valid_states <-  valid_states[rev(seq_len(nrow(valid_states))), ]
   return(ordered_valid_states)
 }
