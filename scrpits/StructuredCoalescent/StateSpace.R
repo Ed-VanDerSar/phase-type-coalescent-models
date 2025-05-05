@@ -33,7 +33,7 @@ get_ordered_partitions <- function(k) {
 #' @param n the size of the initial gene sample in each species.
 #' @param b the size of the initial species sample.
 #' @return the state space.
-state_space_mapper <- function(n, m) {
+two_islands_state_space <- function(n, m) {
   valid_states <- list()
   for (i in 1:(n + m - 1)) {
     states <- get_ordered_partitions(i)
@@ -52,7 +52,6 @@ state_space_mapper <- function(n, m) {
                          split(
                                initial_states,
                                row(initial_states)))
-
   valid_states <- matrix(
                          unlist(valid_states),
                          nrow = length(valid_states),
@@ -60,4 +59,39 @@ state_space_mapper <- function(n, m) {
   # reorder rows to star with (n,m) and end in the absorbing state
   ordered_valid_states <-  valid_states[rev(seq_len(nrow(valid_states))), ]
   return(ordered_valid_states)
+}
+
+rate_matrix <- function(e, a1, a2, b1, b2) {
+  dim <- NROW(e)
+  rate <- matrix(0, ncol = dim, nrow = dim)
+  for (i in 2:dim) {
+    for (j in 1:dim) {
+      ## establishing differences between two states
+      c <- e[i, ] - e[j, ]
+      ## Identifying if the two states are compatible
+      blocks_transformed <- c[1] + c[2]
+      # blocks_transformed==0 means that we have a potential migaration event
+      # blocks_transformed==-1 means that we have a merging event
+
+      ##Fullfilling the rate matrix
+      if (blocks_transformed == 0) {
+        if (c[1] == -1) {
+          rate[j, i] <-  (e[j, 1] * b1)
+        } else if (c[1] == 1) {
+          rate[j, i] <-  (e[j, 2] * b2)
+        }
+      } else if (blocks_transformed == -1) {
+        if (c[1] == -1) {
+          rate[j, i] <-  (choose(e[j, 1], 2) * a1)
+        } else if (c[2] == -1) {
+          rate[j, i] <-  (choose(e[j, 2], 2) * a2)
+        }
+      }
+    }
+  }
+  ## Diagonal part of the matrix
+  for (i in 1:dim){
+    rate[i, i] <- - sum(rate[i, ])
+  }
+  return(rate)
 }
