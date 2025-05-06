@@ -1,9 +1,9 @@
-Package: myproject
+Package: phase-type-distributions-nested-coalescent
 Type: Package
 Title: Example Project
 Version: 0.1.0
-Authors@R: person("Your", "Name", email = "you@example.com", role = c("aut", "cre"))
-Description: A simple R project with unit tests using testthat.
+Authors@R: person("Edwin", "Anzures", email = "luis.aguilar@iimas.unam.mx", role = c("aut", "cre"))
+Description: Coming soon
 License: MIT
 Encoding: UTF-8
 LazyData: true

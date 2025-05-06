@@ -1,6 +1,5 @@
 library(partitions)
 
-
 #' Given a integer n, returns all the possible
 #' [artmetic partitions](\url{https://en.wikipedia.org/wiki/Integer_partition})
 #' of n in a vector representation of the
@@ -27,7 +26,7 @@ state_space_mapper <- function(n) {
 }
 
 #' Given integers n and b, returna a matrix encoding
-#' all possible truncated_ of the nested Kingman model
+#' all possible states of the nested Kingman model
 #' starting with s species with n genes each. Each row of
 #' the matrix represents a sample where the i-th coordinate
 #' is the number species with i genes.
@@ -35,9 +34,9 @@ state_space_mapper <- function(n) {
 #' @param n the size of the initial gene sample in each species.
 #' @param b the size of the initial species sample.
 #' @return the state space.
-nested_state_space_mapper <- function(n, b) {
+nested_state_space <- function(n, b) {
   valid_states <- list()
-  # Process and add all remaining states by its gene mass
+  # Process states all states with total gene mass less than n*b
   for (k in 1:((n * b) - 1)) {
     truncated_states <- state_space_mapper(k)
     zero_cols <- matrix(0, nrow = NROW(truncated_states), ncol =   (b * n) - k)
@@ -67,15 +66,15 @@ nested_state_space_mapper <- function(n, b) {
   return(ordered_valid_states)
 }
 
-rate_matrix <- function(e) {
+nested_rate_matrix <- function(e) {
   dim <- NROW(e)
   total_gene_sample <- NCOL(e)
   rate <- matrix(0, ncol = dim, nrow = dim)
   for (i in 2:dim) {
     for (j in 1:(i - 1)) {
-      ## establishing differences between two truncated_
+      ## establishing differences between two states
       c <- e[i, ] - e[j, ]
-      ## Identifying if the two truncated_ are compatible
+      ## Identifying if the two states are compatible
       sum1 <- c %*% rep(1:total_gene_sample)
       gene_mass <- sum1[1, 1]
       ## check1==0 means that the size of the new blocks
