@@ -31,7 +31,7 @@ get_ordered_partitions <- function(k) {
 #' only one lineage remains.
 #'
 #' @param n the size of the initial gene sample in each species.
-#' @param b the size of the initial species sample.
+#' @param m the size of the initial species sample.
 #' @return the state space.
 two_islands_state_space <- function(n, m) {
   valid_states <- list()
@@ -61,7 +61,8 @@ two_islands_state_space <- function(n, m) {
   return(ordered_valid_states)
 }
 
-rate_matrix <- function(e, a1, a2, b1, b2) {
+rate_matrix <- function(n, m, a1, a2, b1, b2) {
+  e <- two_islands_state_space(n, m)
   dim <- NROW(e)
   rate <- matrix(0, ncol = dim, nrow = dim)
   for (i in 2:dim) {
@@ -93,5 +94,27 @@ rate_matrix <- function(e, a1, a2, b1, b2) {
   for (i in 1:dim){
     rate[i, i] <- - sum(rate[i, ])
   }
+  # Step 1: Add the last column to the one before it
+  rate[, ncol(rate) - 1] <- rate[, ncol(rate) - 1] + rate[, ncol(rate)]
+  # Step 2: Remove the last column
+  rate <- rate[, -ncol(rate)]
+  # Step 3: Remove the last row
+  rate <- rate[-nrow(rate), ]
   return(rate)
+}
+
+library("expm")
+
+tmrca_moments <- function(n, m, power) {
+
+RmRw <- rate_matrix(n, m, 1, 1, 1, 1)
+## Restrict the rate matrix and invert it
+inv_rate <- solve(-RmRw[1:(ncol(RmRw) - 1), 1:(ncol(RmRw) - 1)])
+## Obtain the kth moment of the branch length
+id <- diag(1, (ncol(RmRw) - 1))
+e <- rep(1, ncol(RmRw) - 1)
+dr <- diag(RmRw$Reward)
+moment <- (inv_rate %*% dr)%^%power
+moment <- id[1, ] %*% moment %*% e
+return(moment)
 }
