@@ -109,8 +109,7 @@ nested_rate_matrix <- function(n, b) {
 
 library("expm")
 
-density_funtion_nested <- function(x) {
-  rate_matrix <- nested_rate_matrix(10, 4)
+tmrca_density <- function(x, rate_matrix) {
   ## Restrict the rate matrix and invert it
   rest_rate <- rate_matrix[1:(ncol(rate_matrix) - 1),
                            1:(ncol(rate_matrix) - 1)]
@@ -124,8 +123,7 @@ density_funtion_nested <- function(x) {
 }
 
 
-tmrca_moments_nested <- function(n, b, power) {
-  rate_matrix <- nested_rate_matrix(n, b)
+tmrca_moments <- function(rate_matrix, power) {
   ## Restrict the rate matrix and invert it
   inv_rate <- solve(-rate_matrix[1:(ncol(rate_matrix) - 1),
                                  1:(ncol(rate_matrix) - 1)])
@@ -135,4 +133,42 @@ tmrca_moments_nested <- function(n, b, power) {
   moment <- (inv_rate) %^% power
   moment <- id[1, ] %*% moment %*% e
   return(moment)
+}
+
+library(parallel)
+
+plot_tmrca_density <- function(rate_matrix, limit_interval) {
+  f <- function(x) {
+    value <- tmrca_density(x, rate_matrix)
+    return(value)
+  }
+  x_vals <- seq(0, limit_interval, length.out = 250)
+  y_vals <- unlist(mclapply(x_vals, f, mc.cores = detectCores() - 1))
+
+  plot(x_vals, y_vals, type = "l", col = "darkred", lwd = 2,
+       xlab = "x", ylab = "f(x)", main = "density")
+}
+
+plot_tmrca_1st_2nd_moments <- function() {
+  compute_moments <- function(n) {
+    rate_matrix <- nested_rate_matrix(n, n)
+    c(tmrca_moments(rate_matrix, 1), tmrca_moments(rate_matrix, 2))
+  }
+  n_values <- seq(1, 10, by = 1)
+  results <- mclapply(n_values, compute_moments, mc.cores = detectCores() - 1)
+  moments1 <- sapply(results, `[[`, 1)
+  moments2 <- sapply(results, `[[`, 2)
+
+  # Plot the first moment
+  plot(n_values, moments1, type = "l", col = "blue", lwd = 2,
+       ylim = range(c(moments1, moments2)),
+       xlab = "Sample size", ylab = "TMRCA Moment",
+       main = "TMRCA Moments vs sample size")
+
+  # Add the second moment
+  lines(n_values, moments2, col = "red", lwd = 2)
+
+  # Add a legend
+  legend("topleft", legend = c("Moment 1", "Moment 2"),
+         col = c("blue", "red"), lwd = 2)
 }
