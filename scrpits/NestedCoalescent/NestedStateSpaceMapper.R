@@ -66,38 +66,35 @@ nested_state_space <- function(n, b) {
   return(ordered_valid_states)
 }
 
-nested_rate_matrix <- function(e) {
+nested_rate_matrix <- function(n, b) {
+  e <- nested_state_space(n, b)
   dim <- NROW(e)
   total_gene_sample <- NCOL(e)
   rate <- matrix(0, ncol = dim, nrow = dim)
-  for (i in 2:dim) {
-    for (j in 1:(i - 1)) {
+  for (i in 1:dim) {
+    for (j in 1:dim) {
       ## establishing differences between two states
       c <- e[i, ] - e[j, ]
       ## Identifying if the two states are compatible
-      sum1 <- c %*% rep(1:total_gene_sample)
-      gene_mass <- sum1[1, 1]
-      ## check1==0 means that the size of the new blocks
-      ## equals the size of the disappearing blocks
-      ## Identifying how many new blocks are created
-      w1 <- ifelse(c > 0, 1, 0)
-      sum2 <- c %*% w1
-      created_species <- sum2[1, 1]
-      ## check2==1 means that only one new block is created
+      gene_mass <- c %*% rep(1:total_gene_sample)
+      ## gene_mass==0 means that the size of the new blocks
+      ## equals the size of the disappearing blocks, so
+      ## this means SPECIES MERGING EVENT
+      ## gene_mass==-1 means GENE MERGING EVENT
       ## Disappearing blocks
       w2 <- ifelse(c < 0, 1, 0)
       neg_merged_species <- -c * w2
       ##Fullfilling the rate matrix
-      if (gene_mass == 0 && created_species == 1) {
+      if (gene_mass == 0 && sum(c) == -1) {
         provrate <- 1
         for (k in 1:total_gene_sample){
           provrate <- provrate * choose(e[j, k], neg_merged_species[k])
         }
         rate[j, i] <- provrate
-      } else if (gene_mass == -1 && sum(c) == -1) {
+      } else if (gene_mass == -1 && sum(c) == 0) {
         provrate <- 0
         for (k in 1:total_gene_sample){
-          provrate <- provrate + choose(k, 2)
+          provrate <- provrate + choose(k * w2[k], 2)
         }
         rate[j, i] <- provrate
       }
@@ -108,4 +105,34 @@ nested_rate_matrix <- function(e) {
     rate[i, i] <- - sum(rate[i, ])
   }
   return(rate)
+}
+
+library("expm")
+
+density_funtion_nested <- function(x) {
+  rate_matrix <- nested_rate_matrix(10, 4)
+  ## Restrict the rate matrix and invert it
+  rest_rate <- rate_matrix[1:(ncol(rate_matrix) - 1),
+                           1:(ncol(rate_matrix) - 1)]
+  rest_rate <-  rest_rate * x
+  value <- expm(rest_rate)
+  id <- diag(1, (ncol(rate_matrix) - 1))
+  e <- rep(1, ncol(rate_matrix) - 1)
+  exit_rate <- - rest_rate %*% e
+  value <- id[1, ] %*% value %*% exit_rate
+  return(value)
+}
+
+
+tmrca_moments_nested <- function(n, b, power) {
+  rate_matrix <- nested_rate_matrix(n, b)
+  ## Restrict the rate matrix and invert it
+  inv_rate <- solve(-rate_matrix[1:(ncol(rate_matrix) - 1),
+                                 1:(ncol(rate_matrix) - 1)])
+  ## Obtain the kth moment of the tree hight
+  id <- diag(1, (ncol(rate_matrix) - 1))
+  e <- rep(1, ncol(rate_matrix) - 1)
+  moment <- (inv_rate) %^% power
+  moment <- id[1, ] %*% moment %*% e
+  return(moment)
 }
