@@ -15,3 +15,5 @@ To be added...
 ### Guidelines 
 
 - We follow the [Style Guide](http://adv-r.had.co.nz/Style.html).
+    - `styler` : Auto-format R code	
+    - `lintr`	: Lint/check code style
