@@ -66,6 +66,13 @@ nested_state_space_mapper <- function(n, b) {
   return(ordered_valid_states)
 }
 
+#' Populates the rate matrix for the state space associated to
+#' the nested coalescente model. By no, we only use the rates for a 
+#' Kingman-in-Kingman model.
+#'
+#' @param n the size of the initial gene sample in each species.
+#' @param b the size of the initial species sample.
+#' @return the rate matrix.
 nested_rate_matrix <- function(n, b) {
   e <- nested_state_space_mapper(n, b)
   dim <- NROW(e)
@@ -109,6 +116,11 @@ nested_rate_matrix <- function(n, b) {
 
 library("expm")
 
+#' Evaluates the poroibability density...
+#' 
+#' @param x the point where we evaluate the density
+#' @param rate_matrix the rate matrix.
+#' @return the value of the density on x.
 tmrca_density <- function(x, rate_matrix) {
   ## Restrict the rate matrix and invert it
   rest_rate <- rate_matrix[1:(ncol(rate_matrix) - 1),

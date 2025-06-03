@@ -12,7 +12,7 @@ To be added...
 
 
 
-### Guidelines 
+## Programming Style Guidelines 
 
 - We follow the [Style Guide](http://adv-r.had.co.nz/Style.html).
     - `styler` : Auto-format R code	
