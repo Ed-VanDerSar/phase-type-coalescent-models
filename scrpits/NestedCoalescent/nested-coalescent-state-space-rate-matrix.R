@@ -21,8 +21,7 @@ state_space_mapper <- function(n) {
     }
   }
   ## Reordering
-  r_matrix <- r_matrix[order(r_matrix[, 1], decreasing = TRUE), ]
-  return(r_matrix)
+  r_matrix[order(r_matrix[, 1], decreasing = TRUE), ]
 }
 
 #' Given integers n and b, returna a matrix encoding
@@ -62,12 +61,11 @@ nested_state_space_mapper <- function(n, b) {
                          nrow = length(valid_states),
                          byrow = TRUE)
   # reorder states
-  ordered_valid_states <-  valid_states[rev(seq_len(nrow(valid_states))), ]
-  return(ordered_valid_states)
+  valid_states[rev(seq_len(nrow(valid_states))), ]
 }
 
 #' Populates the rate matrix for the state space associated to
-#' the nested coalescente model. By no, we only use the rates for a 
+#' the nested coalescente model. By no, we only use the rates for a
 #' Kingman-in-Kingman model.
 #'
 #' @param n the size of the initial gene sample in each species.
@@ -111,76 +109,5 @@ nested_rate_matrix <- function(n, b) {
   for (i in 1:dim){
     rate[i, i] <- - sum(rate[i, ])
   }
-  return(rate)
-}
-
-library("expm")
-
-#' Evaluates the poroibability density...
-#' 
-#' @param x the point where we evaluate the density
-#' @param rate_matrix the rate matrix.
-#' @return the value of the density on x.
-tmrca_density <- function(x, rate_matrix) {
-  ## Restrict the rate matrix and invert it
-  rest_rate <- rate_matrix[1:(ncol(rate_matrix) - 1),
-                           1:(ncol(rate_matrix) - 1)]
-  rest_rate <-  rest_rate * x
-  value <- expm(rest_rate)
-  id <- diag(1, (ncol(rate_matrix) - 1))
-  e <- rep(1, ncol(rate_matrix) - 1)
-  exit_rate <- - rest_rate %*% e
-  value <- id[1, ] %*% value %*% exit_rate
-  return(value)
-}
-
-
-tmrca_moments <- function(rate_matrix, power) {
-  ## Restrict the rate matrix and invert it
-  inv_rate <- solve(-rate_matrix[1:(ncol(rate_matrix) - 1),
-                                 1:(ncol(rate_matrix) - 1)])
-  ## Obtain the kth moment of the tree hight
-  id <- diag(1, (ncol(rate_matrix) - 1))
-  e <- rep(1, ncol(rate_matrix) - 1)
-  moment <- (inv_rate) %^% power
-  moment <- id[1, ] %*% moment %*% e
-  return(moment)
-}
-
-library(parallel)
-
-plot_tmrca_density <- function(rate_matrix, limit_interval) {
-  f <- function(x) {
-    value <- tmrca_density(x, rate_matrix)
-    return(value)
-  }
-  x_vals <- seq(0, limit_interval, length.out = 250)
-  y_vals <- unlist(mclapply(x_vals, f, mc.cores = detectCores() - 1))
-
-  plot(x_vals, y_vals, type = "l", col = "darkred", lwd = 2,
-       xlab = "x", ylab = "f(x)", main = "density")
-}
-
-plot_tmrca_1st_2nd_moments <- function() {
-  compute_moments <- function(n) {
-    rate_matrix <- nested_rate_matrix(n, n)
-    c(tmrca_moments(rate_matrix, 1), tmrca_moments(rate_matrix, 2))
-  }
-  n_values <- seq(1, 10, by = 1)
-  results <- mclapply(n_values, compute_moments, mc.cores = detectCores() - 1)
-  moments1 <- sapply(results, `[[`, 1)
-  moments2 <- sapply(results, `[[`, 2)
-
-  # Plot the first moment
-  plot(n_values, moments1, type = "l", col = "blue", lwd = 2,
-       ylim = range(c(moments1, moments2)),
-       xlab = "Sample size", ylab = "TMRCA Moment",
-       main = "TMRCA Moments vs sample size")
-
-  # Add the second moment
-  lines(n_values, moments2, col = "red", lwd = 2)
-
-  # Add a legend
-  legend("topleft", legend = c("Moment 1", "Moment 2"),
-         col = c("blue", "red"), lwd = 2)
+  rate
 }
