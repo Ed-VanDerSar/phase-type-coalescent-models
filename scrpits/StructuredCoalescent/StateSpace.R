@@ -20,14 +20,14 @@ get_ordered_partitions <- function(k) {
   matrix(c(0:k, k:0), ncol = 2)
 }
 
-#' Given integers n and b, returna a matrix encoding
+#' Given integers n and b, return a matrix encoding
 #' all possible states for a coalescent with migration model structured in two
-#' independent islans starting with n and m lienages respectively.
-#' Each row of the outpu matix represents represents a sample
+#' independent islands starting with n and m lineages respectively.
+#' Each row of the output matrix represents represents a sample
 #' where the first coordinate registers the number of blocks in the first
 #' island and the second the number of blocks in the second one.
 #'
-#' The states (1,0) and (0,1) represnts the final state of the sistem where
+#' The states (1,0) and (0,1) represents the final state of the system where
 #' only one lineage remains.
 #'
 #' @param n the size of the initial gene sample in each species.
@@ -74,7 +74,7 @@ rate_matrix <- function(n, m, a1, a2, b1, b2) {
       # blocks_transformed==0 means that we have a potential migaration event
       # blocks_transformed==-1 means that we have a merging event
 
-      ##Fullfilling the rate matrix
+      ##Fulfilling the rate matrix
       if (blocks_transformed == 0) {
         if (c[1] == -1) {
           rate[j, i] <-  (e[j, 1] * b1)
@@ -125,7 +125,7 @@ tmrca_moments <- function(n, m, power) {
   ## Restrict the rate matrix and invert it
   inv_rate <- solve(-rate_matrix[1:(ncol(rate_matrix) - 1),
                                  1:(ncol(rate_matrix) - 1)])
-  ## Obtain the kth moment of the tree hight
+  ## Obtain the k-th moment of the tree height
   id <- diag(1, (ncol(rate_matrix) - 1))
   e <- rep(1, ncol(rate_matrix) - 1)
   moment <- (inv_rate) %^% power

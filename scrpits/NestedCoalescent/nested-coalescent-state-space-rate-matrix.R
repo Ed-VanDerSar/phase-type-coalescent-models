@@ -1,13 +1,13 @@
 library(partitions)
 
 #' Given a integer n, returns all the possible
-#' [artmetic partitions](\url{https://en.wikipedia.org/wiki/Integer_partition})
+#' [arithmetic partitions](\url{https://en.wikipedia.org/wiki/Integer_partition})
 #' of n in a vector representation of the
 #' [Yung diagram](\url{https://en.wikipedia.org/wiki/Young_tableau#Diagrams})
 #'
 #' @param n the size of the initial sample.
 #' @return all the possible partitions
-state_space_mapper <- function(n) {
+all_possible_integer_partitions <- function(n) {
   dim <- P(n)
   ## Definition of the state matrix
   r_matrix <- matrix(ncol = n, nrow = dim)
@@ -21,12 +21,11 @@ state_space_mapper <- function(n) {
     }
   }
   ## Reordering
-  r_matrix <- r_matrix[order(r_matrix[, 1], decreasing = TRUE), ]
-  return(r_matrix)
+  r_matrix[order(r_matrix[, 1], decreasing = TRUE), ]
 }
 
-#' Given integers n and b, returna a matrix encoding
-#' all possible states of the nested Kingman model
+#' Given integers n and b, return a matrix encoding
+#' all possible truncated_ of the nested Kingman model
 #' starting with s species with n genes each. Each row of
 #' the matrix represents a sample where the i-th coordinate
 #' is the number species with i genes.
@@ -38,13 +37,13 @@ nested_state_space <- function(n, b) {
   valid_states <- list()
   # Process states all states with total gene mass less than n*b
   for (k in 1:((n * b) - 1)) {
-    truncated_states <- state_space_mapper(k)
+    truncated_states <- all_possible_integer_partitions(k)
     zero_cols <- matrix(0, nrow = NROW(truncated_states), ncol =   (b * n) - k)
     states <- cbind(truncated_states, zero_cols)
     valid_states <- append(valid_states, split(states, row(states)))
   }
   ## Reorder to choose the first state as the one with b species with n genes
-  initial_states <- state_space_mapper((n * b))
+  initial_states <- all_possible_integer_partitions((n * b))
   # Find the index of the row with the maximum value in column i
   max_index <- which.max(initial_states[, n])
   # Reorder the matrix: put all rows except max_index first,
@@ -62,10 +61,16 @@ nested_state_space <- function(n, b) {
                          nrow = length(valid_states),
                          byrow = TRUE)
   # reorder states
-  ordered_valid_states <-  valid_states[rev(seq_len(nrow(valid_states))), ]
-  return(ordered_valid_states)
+  valid_states[rev(seq_len(nrow(valid_states))), ]
 }
 
+#' Populates the rate matrix for the state space associated to
+#' the nested coalescent model. By no, we only use the rates for a
+#' Kingman-in-Kingman model.
+#'
+#' @param n the size of the initial gene sample in each species.
+#' @param b the size of the initial species sample.
+#' @return the rate matrix.
 nested_rate_matrix <- function(n, b) {
   e <- nested_state_space(n, b)
   dim <- NROW(e)
@@ -104,35 +109,5 @@ nested_rate_matrix <- function(n, b) {
   for (i in 1:dim){
     rate[i, i] <- - sum(rate[i, ])
   }
-  return(rate)
-}
-
-library("expm")
-
-density_funtion_nested <- function(x) {
-  rate_matrix <- nested_rate_matrix(10, 4)
-  ## Restrict the rate matrix and invert it
-  rest_rate <- rate_matrix[1:(ncol(rate_matrix) - 1),
-                           1:(ncol(rate_matrix) - 1)]
-  rest_rate <-  rest_rate * x
-  value <- expm(rest_rate)
-  id <- diag(1, (ncol(rate_matrix) - 1))
-  e <- rep(1, ncol(rate_matrix) - 1)
-  exit_rate <- - rest_rate %*% e
-  value <- id[1, ] %*% value %*% exit_rate
-  return(value)
-}
-
-
-tmrca_moments_nested <- function(n, b, power) {
-  rate_matrix <- nested_rate_matrix(n, b)
-  ## Restrict the rate matrix and invert it
-  inv_rate <- solve(-rate_matrix[1:(ncol(rate_matrix) - 1),
-                                 1:(ncol(rate_matrix) - 1)])
-  ## Obtain the kth moment of the tree hight
-  id <- diag(1, (ncol(rate_matrix) - 1))
-  e <- rep(1, ncol(rate_matrix) - 1)
-  moment <- (inv_rate) %^% power
-  moment <- id[1, ] %*% moment %*% e
-  return(moment)
+  rate
 }
