@@ -1,13 +1,13 @@
 library(partitions)
 
 #' Given a integer n, returns all the possible
-#' [artmetic partitions](\url{https://en.wikipedia.org/wiki/Integer_partition})
+#' [arithmetic partitions](\url{https://en.wikipedia.org/wiki/Integer_partition})
 #' of n in a vector representation of the
 #' [Yung diagram](\url{https://en.wikipedia.org/wiki/Young_tableau#Diagrams})
 #'
 #' @param n the size of the initial sample.
 #' @return all the possible partitions
-state_space_mapper <- function(n) {
+all_possible_integer_partitions <- function(n) {
   dim <- P(n)
   ## Definition of the state matrix
   r_matrix <- matrix(ncol = n, nrow = dim)
@@ -24,7 +24,7 @@ state_space_mapper <- function(n) {
   r_matrix[order(r_matrix[, 1], decreasing = TRUE), ]
 }
 
-#' Given integers n and b, returna a matrix encoding
+#' Given integers n and b, return a matrix encoding
 #' all possible truncated_ of the nested Kingman model
 #' starting with s species with n genes each. Each row of
 #' the matrix represents a sample where the i-th coordinate
@@ -37,13 +37,13 @@ nested_state_space_mapper <- function(n, b) {
   valid_states <- list()
   # Process and add all remaining states by its gene mass
   for (k in 1:((n * b) - 1)) {
-    truncated_states <- state_space_mapper(k)
+    truncated_states <- all_possible_integer_partitions(k)
     zero_cols <- matrix(0, nrow = NROW(truncated_states), ncol =   (b * n) - k)
     states <- cbind(truncated_states, zero_cols)
     valid_states <- append(valid_states, split(states, row(states)))
   }
   ## Reorder to choose the first state as the one with b species with n genes
-  initial_states <- state_space_mapper((n * b))
+  initial_states <- all_possible_integer_partitions((n * b))
   # Find the index of the row with the maximum value in column i
   max_index <- which.max(initial_states[, n])
   # Reorder the matrix: put all rows except max_index first,
@@ -65,7 +65,7 @@ nested_state_space_mapper <- function(n, b) {
 }
 
 #' Populates the rate matrix for the state space associated to
-#' the nested coalescente model. By no, we only use the rates for a
+#' the nested coalescent model. By no, we only use the rates for a
 #' Kingman-in-Kingman model.
 #'
 #' @param n the size of the initial gene sample in each species.

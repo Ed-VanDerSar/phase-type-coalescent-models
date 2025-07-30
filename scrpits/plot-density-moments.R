@@ -16,7 +16,7 @@ plot_tmrca_1st_2nd_moments <- function() {
     g <- tmrca_moments(nested_rate_matrix(n, n))
     c(g(1), g(2))
   }
-  n_values <- seq(1, 5, by = 1)
+  n_values <- seq(1, 10, by = 1)
   results <- mclapply(n_values, compute_moments, mc.cores = detectCores() - 1)
   moments1 <- sapply(results, `[[`, 1)
   moments2 <- sapply(results, `[[`, 2)

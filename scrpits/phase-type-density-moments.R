@@ -1,12 +1,12 @@
 library("expm")
 
-#' Retrieves the probability density of the
-#' time to absortion asssociated with the given rate matrix. We are assuming the
-#' underliying markov chain starts in the first state and is aborbed in
+#' Probability density of the
+#' time to absorption associated with the given rate matrix. We are assuming the
+#' underlying markov chain starts in the first state and is absorbed in
 #' in the last state.
 #'
 #' @param rate_matrix the rate matrix.
-#' @return the density funtion.
+#' @return the density function.
 tmrca_density <- function(rate_matrix) {
   ## Restrict the rate matrix and invert it
   rest_rate <- rate_matrix[1:(ncol(rate_matrix) - 1),
@@ -19,21 +19,21 @@ tmrca_density <- function(rate_matrix) {
   }
 }
 
-#' Retrieves a funtion that receives an integer n
+#' Function that receives an integer n
 #' and computes the n-th moment of the
-#' time to absortion asssociated with the given rate matrix. We are assuming the
-#' underliying markov chain starts in the first state and is aborbed in
+#' time to abortion associated with the given rate matrix. We are assuming the
+#' underlying markov chain starts in the first state and is absorbed in
 #' in the last state.
 #'
 #' @param rate_matrix the rate matrix.
-#' @return the moment funtion.
+#' @return the moment function.
 tmrca_moments <- function(rate_matrix) {
   ## Restrict the rate matrix and invert it
   inv_rate <- solve(-rate_matrix[1:(ncol(rate_matrix) - 1),
                                  1:(ncol(rate_matrix) - 1)])
   id_matrix <- diag(1, (ncol(rate_matrix) - 1))
   e <- rep(1, ncol(rate_matrix) - 1)
-  ## Obtain the nth moment of the tree hight
+  ## Obtain the nth moment of the tree height
   function(power) {
     id_matrix[1, ] %*% ((inv_rate) %^% power) %*% e
   }
