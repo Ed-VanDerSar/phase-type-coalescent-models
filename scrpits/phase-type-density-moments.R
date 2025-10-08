@@ -19,10 +19,9 @@ tmrca_density <- function(rate_matrix) {
   }
 }
 
-#' Function that receives an integer n
-#' and computes the n-th moment of the
+#' Computes the n-th moment of the
 #' time to abortion associated with the given rate matrix. We are assuming the
-#' underlying markov chain starts in the first state and is absorbed in
+#' underlying Markov chain starts in the first state and is absorbed in
 #' in the last state.
 #'
 #' @param rate_matrix the rate matrix.
