@@ -10,10 +10,6 @@ The aim is to compare the results obtained with those corresponding to a Kingman
 
 To be added...
 
+## Coalescents with demographic structures 
 
-
-## Programming Style Guidelines 
-
-- We follow the [Style Guide](http://adv-r.had.co.nz/Style.html).
-    - `styler` : Auto-format R code	
-    - `lintr`	: Lint/check code style
+To be added...
