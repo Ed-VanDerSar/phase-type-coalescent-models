@@ -1,8 +1,9 @@
 library(testthat)
 library(partitions)
+library(here)
 
-# Source your functions (adjust the path as needed)
-source("nested-coalescent-state-space-rate-matrix.R")
+
+source(here("scripts", "nested-coalescent-state-space-rate-matrix.R"))
 
 test_that("all_possible_integer_partitions works correctly", {
   # Test basic functionality
@@ -152,6 +153,3 @@ test_that("Biological interpretation tests", {
     expect_equal(rate_matrix[state_2_0, state_0_1], 1)
   }
 })
-
-# Run all tests
-test_dir(".", reporter = "summary")
