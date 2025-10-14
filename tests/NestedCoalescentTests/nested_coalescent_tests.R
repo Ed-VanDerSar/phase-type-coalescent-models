@@ -2,7 +2,7 @@ library(testthat)
 library(partitions)
 
 # Source your functions (adjust the path as needed)
-source("improved_partitions.R")
+source("nested-coalescent-state-space-rate-matrix.R")
 
 test_that("all_possible_integer_partitions works correctly", {
   # Test basic functionality
