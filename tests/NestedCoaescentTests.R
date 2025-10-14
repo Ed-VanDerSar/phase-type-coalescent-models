@@ -2,7 +2,6 @@ library(testthat)
 library(partitions)
 library(here)
 
-
 source(here("scripts", "nested-coalescent-state-space-rate-matrix.R"))
 
 test_that("all_possible_integer_partitions works correctly", {
