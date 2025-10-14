@@ -119,59 +119,44 @@ nested_state_space_mapper <- function(n, b) {
 #' @examples
 #' nested_rate_matrix(2, 1)
 nested_rate_matrix <- function(n, b) {
-  state_space <- nested_state_space_mapper(n, b)
-  num_states <- nrow(state_space)
-  total_gene_sample <- ncol(state_space)
-  
-  rate_matrix <- matrix(0, nrow = num_states, ncol = num_states)
-  
-  for (i in seq_len(num_states)) {
-    for (j in seq_len(num_states)) {
-      if (i == j) next
-      
-      state_diff <- state_space[i, ] - state_space[j, ]
-      gene_mass_change <- sum(state_diff * seq_len(total_gene_sample))
-      total_count_change <- sum(state_diff)
-      
-      # Species merging event (Kingman at species level)
-      if (gene_mass_change == 0 && total_count_change == -1) {
-        # Identify which species are being merged
-        decreasing_sizes <- which(state_diff < 0)
-        increasing_sizes <- which(state_diff > 0)
-        
-        if (length(decreasing_sizes) == 2 && length(increasing_sizes) == 1) {
-          # Check if this is a valid species merge: k + l = m
-          if (decreasing_sizes[1] + decreasing_sizes[2] == increasing_sizes[1]) {
-            # Rate is product of binomial coefficients
-            k_count <- state_space[j, decreasing_sizes[1]]
-            l_count <- state_space[j, decreasing_sizes[2]]
-            rate_matrix[i, j] <- k_count * l_count
-          }
+  e <- nested_state_space_mapper(n, b)
+  dim <- NROW(e)
+  total_gene_sample <- NCOL(e)
+  rate <- matrix(0, ncol = dim, nrow = dim)
+  for (i in 1:dim) {
+    for (j in 1:dim) {
+      ## establishing differences between two states
+      c <- e[i, ] - e[j, ]
+      ## Identifying if the two states are compatible
+      gene_mass <- c %*% rep(1:total_gene_sample)
+      ## gene_mass==0 means that the size of the new blocks
+      ## equals the size of the disappearing blocks, so
+      ## this means SPECIES MERGING EVENT
+      ## gene_mass==-1 means GENE MERGING EVENT
+      ## Disappearing blocks
+      w2 <- ifelse(c < 0, 1, 0)
+      neg_merged_species <- -c * w2
+      ##Fullfilling the rate matrix
+      if (gene_mass == 0 && sum(c) == -1) {
+        provrate <- 1
+        for (k in 1:total_gene_sample){
+          provrate <- provrate * choose(e[j, k], neg_merged_species[k])
         }
-      }
-      # Gene merging event (Kingman at gene level)  
-      else if (gene_mass_change == -1 && total_count_change == 0) {
-        # Identify which species size decreased and which increased
-        decreased_size <- which(state_diff < 0)
-        increased_size <- which(state_diff > 0)
-        
-        if (length(decreased_size) == 1 && length(increased_size) == 1 &&
-            increased_size + 1 == decreased_size) {
-          # Gene coalescence within species of size k: rate = choose(k, 2)
-          k <- decreased_size
-          species_count <- state_space[j, decreased_size]  # Use target state count
-          rate_matrix[i, j] <- species_count * choose(k, 2)
+        rate[j, i] <- provrate
+      } else if (gene_mass == -1 && sum(c) == 0) {
+        provrate <- 0
+        for (k in 1:total_gene_sample){
+          provrate <- provrate + choose(k * w2[k], 2)
         }
+        rate[j, i] <- provrate
       }
     }
   }
-  
-  # Set diagonal elements
-  for (i in seq_len(num_states)) {
-    rate_matrix[i, i] <- -sum(rate_matrix[i, ])
+  ## Diagonal part of the matrix
+  for (i in 1:dim){
+    rate[i, i] <- - sum(rate[i, ])
   }
-  
-  rate_matrix
+  rate
 }
 
 # Example usage and verification
