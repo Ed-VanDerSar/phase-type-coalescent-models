@@ -53,6 +53,8 @@ all_possible_integer_partitions <- function(n) {
 nested_state_space_mapper <- function(n, b) {
   if (n <= 0 || b <= 0) {
     stop("n and b must be positive integers")
+  } else if (n == 1 && b == 1) {
+     return(matrix(1))
   }
   
   total_genes <- n * b

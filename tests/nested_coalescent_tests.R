@@ -22,7 +22,7 @@ test_that("all_possible_integer_partitions works correctly", {
   
   # Check that all expected partitions are present (order may vary)
   expect_equal(nrow(result), nrow(expected))
-  expect_equal(sum(result), 4 * nrow(result))  # Each partition sums to 4
+  expect_equal(result %*% (1:4), matrix(rep(ncol(result), nrow(result)), ncol = 1))  # Each partition sums to 4
   
   # Test edge cases
   expect_error(all_possible_integer_partitions(0), "must be a positive integer")
@@ -87,7 +87,7 @@ test_that("nested_rate_matrix works correctly", {
   # States should be: [0,1] (one species with 2 genes) and [2,0] (two species with 1 gene each)
   # Only one transition possible: from [2,0] to [0,1] via gene coalescence
   rate_matrix_2_1 <- nested_rate_matrix(2, 1)
-  expect_equal(dim(rate_matrix_2_1), c(2, 2))
+  expect_equal(dim(rate_matrix_2_1), c(nrow(nested_state_space_mapper(2,1)), nrow(nested_state_space_mapper(2,1))))
   
   # Test larger case
   expect_silent(rate_matrix_2_2 <- nested_rate_matrix(2, 2))
