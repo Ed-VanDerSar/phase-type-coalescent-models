@@ -49,17 +49,17 @@ nested_state_space <- function(n, b) {
   # Reorder the matrix: put all rows except max_index first,
   # then add max_index row at the end
   reordered_initial_states <- rbind(
-                                    initial_states[-max_index, , drop = FALSE],
-                                    initial_states[max_index, , drop = FALSE])
+    initial_states[-max_index, , drop = FALSE],
+    initial_states[max_index, , drop = FALSE])
   valid_states <- append(
-                         valid_states,
-                         split(
-                               reordered_initial_states,
-                               row(reordered_initial_states)))
+    valid_states,
+    split(
+      reordered_initial_states,
+      row(reordered_initial_states)))
   valid_states <- matrix(
-                         unlist(valid_states),
-                         nrow = length(valid_states),
-                         byrow = TRUE)
+    unlist(valid_states),
+    nrow = length(valid_states),
+    byrow = TRUE)
   # reorder states
   valid_states[rev(seq_len(nrow(valid_states))), ]
 }
