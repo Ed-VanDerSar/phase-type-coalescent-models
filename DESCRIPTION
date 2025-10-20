@@ -1,6 +1,6 @@
 Package: phase-type-distributions-nested-coalescent
 Type: Package
-Title: Example Project
+Title: Phase-type distributions in structured and nested coalescent models
 Version: 0.1.0
 Authors@R: person("Edwin", "Anzures", email = "luis.aguilar@iimas.unam.mx", role = c("aut", "cre"))
 Description: Coming soon
