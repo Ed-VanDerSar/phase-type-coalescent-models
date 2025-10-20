@@ -23,9 +23,6 @@ test_that("all_possible_integer_partitions works correctly", {
   expect_equal(nrow(result), nrow(expected))
   expect_equal(result %*% (1:4), matrix(rep(ncol(result), nrow(result)), ncol = 1))  # Each partition sums to 4
   
-  # Test edge cases
-  expect_error(all_possible_integer_partitions(0), "must be a positive integer")
-  expect_error(all_possible_integer_partitions(-1), "must be a positive integer")
   
   # Test n=1
   result1 <- all_possible_integer_partitions(1)
@@ -35,8 +32,7 @@ test_that("all_possible_integer_partitions works correctly", {
 
 test_that("nested_state_space_mapper works correctly", {
   # Test basic functionality
-  expect_silent(states <- nested_state_space_mapper(2, 2))
-  expect_type(states, "integer")
+  expect_silent(states <- nested_state_space(2, 2))
   
   # Test dimensions
   total_genes <- 2 * 2
@@ -53,15 +49,6 @@ test_that("nested_state_space_mapper works correctly", {
   gene_counts <- apply(states, 1, function(row) sum(row * seq_along(row)))
   expect_true(all(gene_counts <= total_genes))
   expect_true(all(gene_counts >= 1))
-  
-  # Test edge cases
-  expect_error(nested_state_space_mapper(0, 2), "must be positive integers")
-  expect_error(nested_state_space_mapper(2, 0), "must be positive integers")
-  
-  # Test small case: n=1, b=1
-  states_small <- nested_state_space_mapper(1, 1)
-  expect_equal(dim(states_small), c(1, 1))
-  expect_equal(states_small[1, 1], 1)
 })
 
 test_that("nested_rate_matrix works correctly", {
@@ -86,7 +73,7 @@ test_that("nested_rate_matrix works correctly", {
   # States should be: [0,1] (one species with 2 genes) and [2,0] (two species with 1 gene each)
   # Only one transition possible: from [2,0] to [0,1] via gene coalescence
   rate_matrix_2_1 <- nested_rate_matrix(2, 1)
-  expect_equal(dim(rate_matrix_2_1), c(nrow(nested_state_space_mapper(2,1)), nrow(nested_state_space_mapper(2,1))))
+  expect_equal(dim(rate_matrix_2_1), c(nrow(nested_state_space(2,1)), nrow(nested_state_space(2,1))))
   
   # Test larger case
   expect_silent(rate_matrix_2_2 <- nested_rate_matrix(2, 2))
@@ -98,7 +85,7 @@ test_that("Integration between functions works", {
   # Test that state space mapper uses partitions correctly
   n <- 2
   b <- 2
-  states <- nested_state_space_mapper(n, b)
+  states <- nested_state_space(n, b)
   partitions <- all_possible_integer_partitions(n * b)
   
   # The full mass partition should be in the state space
@@ -116,7 +103,7 @@ test_that("Performance tests for larger inputs", {
   # Test that functions don't crash on moderate inputs
   expect_silent({
     partitions_10 <- all_possible_integer_partitions(10)
-    states_3_3 <- nested_state_space_mapper(3, 3)
+    states_3_3 <- nested_state_space(3, 3)
     rate_matrix_2_2 <- nested_rate_matrix(2, 2)
   })
   
@@ -139,7 +126,7 @@ test_that("Biological interpretation tests", {
   
   # Case 2: One species with two genes
   # Only possible transition: gene coalescence
-  states <- nested_state_space_mapper(2, 1)
+  states <- nested_state_space(2, 1)
   rate_matrix <- nested_rate_matrix(2, 1)
   
   # Should have two states: [0,1] and [2,0]

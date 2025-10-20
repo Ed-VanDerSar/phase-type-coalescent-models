@@ -8,6 +8,9 @@ library(partitions)
 #' @param n the size of the initial sample.
 #' @return all the possible partitions
 all_possible_integer_partitions <- function(n) {
+  if (n == 1) {
+    return(matrix(1, nrow = 1, ncol = 1))
+  } else {
   dim <- P(n)
   ## Definition of the state matrix
   r_matrix <- matrix(ncol = n, nrow = dim)
@@ -22,6 +25,7 @@ all_possible_integer_partitions <- function(n) {
   }
   ## Reordering
   r_matrix[order(r_matrix[, 1], decreasing = TRUE), ]
+  }
 }
 
 #' Given integers n and b, return a matrix encoding
