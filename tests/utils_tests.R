@@ -1,11 +1,11 @@
 library(partitions)
 
-#' Given integers n and b, returna the cardinality of the stae space
-#' of  of the nested Kingman model starting with s species with n genes each.
+#' Given integers n and b, returns the carnality of the sate space
+#' of the nested Kingman model starting with b species with n genes each.
 #'
 #' @param n the size of the initial gene sample.
 #' @param b the size of the initial species sample.
-cardinality_state_space <- function(n, b) {
+cardinality_state_space <- function(b, n) {
   e <- 0
   for (k in 1:(n * b)) {
     e <- e + P(k)

@@ -8,6 +8,9 @@ library(partitions)
 #' @param n the size of the initial sample.
 #' @return all the possible partitions
 all_possible_integer_partitions <- function(n) {
+  if (n == 1) {
+    return(matrix(1, nrow = 1, ncol = 1))
+  } else {
   dim <- P(n)
   ## Definition of the state matrix
   r_matrix <- matrix(ncol = n, nrow = dim)
@@ -22,6 +25,7 @@ all_possible_integer_partitions <- function(n) {
   }
   ## Reordering
   r_matrix[order(r_matrix[, 1], decreasing = TRUE), ]
+  }
 }
 
 #' Given integers n and b, return a matrix encoding
@@ -33,9 +37,9 @@ all_possible_integer_partitions <- function(n) {
 #' @param n the size of the initial gene sample in each species.
 #' @param b the size of the initial species sample.
 #' @return the state space.
-nested_state_space_mapper <- function(n, b) {
+nested_state_space <- function(n, b) {
   valid_states <- list()
-  # Process and add all remaining states by its gene mass
+  # Process states all states with total gene mass less than n*b
   for (k in 1:((n * b) - 1)) {
     truncated_states <- all_possible_integer_partitions(k)
     zero_cols <- matrix(0, nrow = NROW(truncated_states), ncol =   (b * n) - k)
@@ -49,17 +53,17 @@ nested_state_space_mapper <- function(n, b) {
   # Reorder the matrix: put all rows except max_index first,
   # then add max_index row at the end
   reordered_initial_states <- rbind(
-                                    initial_states[-max_index, , drop = FALSE],
-                                    initial_states[max_index, , drop = FALSE])
+    initial_states[-max_index, , drop = FALSE],
+    initial_states[max_index, , drop = FALSE])
   valid_states <- append(
-                         valid_states,
-                         split(
-                               reordered_initial_states,
-                               row(reordered_initial_states)))
+    valid_states,
+    split(
+      reordered_initial_states,
+      row(reordered_initial_states)))
   valid_states <- matrix(
-                         unlist(valid_states),
-                         nrow = length(valid_states),
-                         byrow = TRUE)
+    unlist(valid_states),
+    nrow = length(valid_states),
+    byrow = TRUE)
   # reorder states
   valid_states[rev(seq_len(nrow(valid_states))), ]
 }
@@ -72,7 +76,7 @@ nested_state_space_mapper <- function(n, b) {
 #' @param b the size of the initial species sample.
 #' @return the rate matrix.
 nested_rate_matrix <- function(n, b) {
-  e <- nested_state_space_mapper(n, b)
+  e <- nested_state_space(n, b)
   dim <- NROW(e)
   total_gene_sample <- NCOL(e)
   rate <- matrix(0, ncol = dim, nrow = dim)
