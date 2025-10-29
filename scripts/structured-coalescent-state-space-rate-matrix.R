@@ -61,7 +61,7 @@ two_islands_state_space <- function(n, m) {
   return(ordered_valid_states)
 }
 
-rate_matrix <- function(n, m, a1, a2, b1, b2) {
+two_islands_rate_matrix <- function(n, m, a1, a2, b1, b2) {
   e <- two_islands_state_space(n, m)
   dim <- NROW(e)
   rate <- matrix(0, ncol = dim, nrow = dim)
@@ -101,34 +101,4 @@ rate_matrix <- function(n, m, a1, a2, b1, b2) {
   # Step 3: Remove the last row
   rate <- rate[-nrow(rate), ]
   return(rate)
-}
-
-library("expm")
-
-density_funtion <- function(x) {
-  rate_matrix <- rate_matrix(15, 15, 1, 1, 1, 1)
-  ## Restrict the rate matrix and invert it
-  rest_rate <- rate_matrix[1:(ncol(rate_matrix) - 1),
-                           1:(ncol(rate_matrix) - 1)]
-  rest_rate <-  rest_rate * x
-  value <- expm(rest_rate)
-  id <- diag(1, (ncol(rate_matrix) - 1))
-  e <- rep(1, ncol(rate_matrix) - 1)
-  exit_rate <- - rest_rate %*% e
-  value <- id[1, ] %*% value %*% exit_rate
-  return(value)
-}
-
-
-tmrca_moments <- function(n, m, power) {
-  rate_matrix <- rate_matrix(n, m, 1, 1, 1, 1)
-  ## Restrict the rate matrix and invert it
-  inv_rate <- solve(-rate_matrix[1:(ncol(rate_matrix) - 1),
-                                 1:(ncol(rate_matrix) - 1)])
-  ## Obtain the k-th moment of the tree height
-  id <- diag(1, (ncol(rate_matrix) - 1))
-  e <- rep(1, ncol(rate_matrix) - 1)
-  moment <- (inv_rate) %^% power
-  moment <- id[1, ] %*% moment %*% e
-  return(moment)
 }
