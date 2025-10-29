@@ -20,7 +20,7 @@ get_ordered_partitions <- function(k) {
   matrix(c(0:k, k:0), ncol = 2)
 }
 
-#' Given integers n and b, return a matrix encoding
+#' Given integers n and m, return a matrix encoding
 #' all possible states for a coalescent with migration model structured in two
 #' independent islands starting with n and m lineages respectively.
 #' Each row of the output matrix represents represents a sample
@@ -30,8 +30,8 @@ get_ordered_partitions <- function(k) {
 #' The states (1,0) and (0,1) represents the final state of the system where
 #' only one lineage remains.
 #'
-#' @param n the size of the initial gene sample in each species.
-#' @param m the size of the initial species sample.
+#' @param n the size of the initial gene sample in first island
+#' @param m the size of the initial gene sample in second island
 #' @return the state space.
 two_islands_state_space <- function(n, m) {
   valid_states <- list()
@@ -61,7 +61,25 @@ two_islands_state_space <- function(n, m) {
   return(ordered_valid_states)
 }
 
-two_islands_rate_matrix <- function(n, m, a1, a2, b1, b2) {
+#' Provided migration rate and merging rates for each island, return the rate 
+#' matrix for a coalescent model with migration structured in two
+#' independent islands starting with n and m lineages respectively.
+#'
+#' The states (1,0) and (0,1) represents the final state of the system where
+#' only one lineage remains.
+#'
+#' @param n the size of the initial gene sample in first island
+#' @param m the size of the initial gene sample in second island
+#' @param mergingRateFirstIsland 
+#' @param mergingRateSecondIsland
+#' @param migrationRateFirstToSecond
+#' @param migrationRateSecondToFirst
+#' @return the corresponding rate matrix.
+two_islands_rate_matrix <- function(n, m, 
+                                    mergingRateFirstIsland, 
+                                    mergingRateSecondIsland,
+                                    migrationRateFirstToSecond, 
+                                    migrationRateSecondToFirst) {
   e <- two_islands_state_space(n, m)
   dim <- NROW(e)
   rate <- matrix(0, ncol = dim, nrow = dim)
@@ -71,21 +89,21 @@ two_islands_rate_matrix <- function(n, m, a1, a2, b1, b2) {
       c <- e[i, ] - e[j, ]
       ## Identifying if the two states are compatible
       blocks_transformed <- c[1] + c[2]
-      # blocks_transformed==0 means that we have a potential migaration event
+      # blocks_transformed==0 means that we have a potential migration event
       # blocks_transformed==-1 means that we have a merging event
 
       ##Fulfilling the rate matrix
       if (blocks_transformed == 0) {
         if (c[1] == -1) {
-          rate[j, i] <-  (e[j, 1] * b1)
+          rate[j, i] <-  (e[j, 1] * migrationRateFirstToSecond)
         } else if (c[1] == 1) {
-          rate[j, i] <-  (e[j, 2] * b2)
+          rate[j, i] <-  (e[j, 2] * migrationRateSecondToFirst)
         }
       } else if (blocks_transformed == -1) {
         if (c[1] == -1) {
-          rate[j, i] <-  (choose(e[j, 1], 2) * a1)
+          rate[j, i] <-  (choose(e[j, 1], 2) * mergingRateFirstIsland)
         } else if (c[2] == -1) {
-          rate[j, i] <-  (choose(e[j, 2], 2) * a2)
+          rate[j, i] <-  (choose(e[j, 2], 2) * mergingRateSecondIsland)
         }
       }
     }
